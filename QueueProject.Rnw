@@ -1,0 +1,60 @@
+\documentclass{article}
+
+\begin{document}
+
+\title{Math 523\\
+		Rena Haswah\\
+		Professor Tier\\
+		Project 3\\
+		Queue Simulation}
+\maketitle
+\newpage
+\section{Introduction}
+Large networks of queueing systems model important real-world systems such as web-servers, hospitals, call centers and checkout lines. The goal of this project is write a simulation of an M/M/1 queueing system using an event driven simulation.
+
+\section{Simulating Random Job Arrivals \& Departures}
+Consider a system where people/jobs arrive based on a Poisson process and are served in times derived from an Exponential distribution. The random process will be ran with 1000 trials. Here, times of arrivals and services are denoted "arrivals" and "services". Big N(t)=total number of customers or jobs to go through the system, and small p denotes the probability that a job or customer arrives at time t.
+<<out.width='2.5in'>>=
+N<-c()
+for(j in 1:1000){
+  arrivals<-c()
+  service<-c()
+  arrivals[1]=rexp(1,rate=1)
+  service[1]=rexp(1,rate=2)
+  for(i in 1:1000){
+    arrivals[i+1]=arrivals[i]+rexp(1,rate=1)
+    service[i+1]=rexp(1,rate=2)
+    if(arrivals[i+1]>100){break}
+  }
+  N[j]<-length(arrivals)-1
+  cust<-length(arrivals)
+}
+@
+\section{Servers Busy}
+A queue is a set of objects or people waiting to be serviced in the order they arrived. In order to track the activity of the queue, there must be a way to compare arrivals and departures. Here, queuedUp stores the number of customers waiting in line (being held in the queue). Departure time, which is stored in the vector "depart", is calculate by taking the customer time of arrival and adding to it the time taken to complete service for that customer.
+<<out.width='2.5in'>>=
+depart<-(arrivals+service)
+queuedUp<-c()
+queuedUp[1]=1
+for(i in 2:length(arrivals)-1){
+    if(arrivals[i+1]<depart[i]){queuedUp[i+1]=queuedUp[i]+1}
+  else{queuedUp[i+1]=max(0,queuedUp[i]-1)}}
+head(data.frame(arrivals,service,depart,queuedUp))
+@
+\section{Performance Measures}
+Big N(t)=total number of customers or jobs to go through the system. It is know that 
+\[ E[N]= \sum_{n=1}^{\infty} n*p_n(t)\]
+Introduce \(\lambda\) as the arrival parameter and \(\mu\) as the servicing parameter. Taking the ratio gives new parameter \(\rho\) for traffic intensity.
+\[\lambda/\mu = \rho\]
+From solving local balance of the Kolmogorov Forward equations 
+\[p_n=(1-\rho)*\rho^n\]
+
+Therefore, 
+\[ E[N]= \sum_{n=1}^{\infty} n*(1-\rho)*\rho^n\]
+This is the geometric distribution, so 
+\[ E[N]= \rho/(1-\rho)\]
+For the simulation above \(\rho\) = 1/2. Then E[N] = 1.
+<<out.width='2.5in'>>=
+mean(queuedUp)
+@
+\end{document}
